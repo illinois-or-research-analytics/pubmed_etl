@@ -5,21 +5,28 @@ source ./venv/bin/activate
 
 
 
-xml_input='/shared/hossein_hm31/xml_data'
-parquet_output='/shared/hossein_hm31/pubmed_parquet'
+gz_input='/shared/pcopy'
+parquet_output='/shared/hossein_hm31/parquet_test'
 cores=70
-table_name='public.pubmed_etl'
+table_name='hm31.pubmed_etl_performance_test'
 user='hm31'
 pas='graphs'
 
 start_time=$(date +"%s")
 
-python parallel.py -xml "$xml_input" -parquet "$parquet_output" -cores "$cores" -wrap 0
-python parallel.py -xml "$xml_input" -parquet "$parquet_output" -cores "$cores" -wrap 1
+
+python extractor.py -gz "$gz_input" -cores "$cores"
 
 
-mid_time=$(date +"%s")
-elapsed_time_parse=$((mid_time - start_time))
+mid_time1=$(date +"%s")
+elapsed_time_unzip=$((mid_time1 - start_time))
+
+python parallel.py -xml "$gz_input" -parquet "$parquet_output" -cores "$cores" -wrap 0
+python parallel.py -xml "$gz_input" -parquet "$parquet_output" -cores "$cores" -wrap 1
+
+
+mid_time2=$(date +"%s")
+elapsed_time_parse=$((mid_time2 - mid_time1))
 
 
 
@@ -29,6 +36,6 @@ end_time=$(date +"%s")
 
 elapsed_time_data=$((end_time - mid_time))
 
-
+echo "Elapsed time for unzipping: elapsed_time_unzip seconds"
 echo "Elapsed time for parsing: $elapsed_time_parse seconds"
 echo "Elapsed time for data handling: $elapsed_time_data seconds"
